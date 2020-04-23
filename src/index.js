@@ -176,8 +176,8 @@ class TwitterLogin extends Component {
 TwitterLogin.propTypes = {
   tag: PropTypes.string,
   text: PropTypes.string,
-  loginUrl: PropTypes.string.isRequired,
-  requestTokenUrl: PropTypes.string.isRequired,
+  loginUrl: PropTypes.string,
+  requestTokenUrl: PropTypes.string,
   onFailure: PropTypes.func.isRequired,
   onSuccess: PropTypes.func.isRequired,
   disabled: PropTypes.bool,
