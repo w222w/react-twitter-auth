@@ -27,7 +27,7 @@ class TwitterLogin extends Component {
 
     return window
       .fetch(this.props.requestTokenUrl, {
-        method: "POST",
+        method: this.props.fetchMethod,
         credentials: this.props.credentials,
         headers: this.getHeaders()
       })
@@ -124,7 +124,7 @@ class TwitterLogin extends Component {
           this.props.loginUrl
         }?oauth_verifier=${oAuthVerifier}&oauth_token=${oauthToken}`,
         {
-          method: "POST",
+          method: this.props.fetchMethod,
           credentials: this.props.credentials,
           headers: this.getHeaders()
         }
@@ -180,7 +180,8 @@ TwitterLogin.propTypes = {
   credentials: PropTypes.oneOf(["omit", "same-origin", "include"]),
   customHeaders: PropTypes.object,
   forceLogin: PropTypes.bool,
-  screenName: PropTypes.string
+  screenName: PropTypes.string,
+  fetchMethod: PropTypes.string
 };
 
 TwitterLogin.defaultProps = {
@@ -193,7 +194,8 @@ TwitterLogin.defaultProps = {
   credentials: "same-origin",
   customHeaders: {},
   forceLogin: false,
-  screenName: ""
+  screenName: "",
+  fetchMethod: 'POST'
 };
 
 export default TwitterLogin;
