@@ -20,11 +20,13 @@ class TwitterLogin extends Component {
     if(this.props.fetchRequestToken){
       return this.props.fetchRequestToken()
     }
-    return window
-    .fetch(this.props.requestTokenUrl, {
+    return window.fetch(this.props.requestTokenUrl, {
       method: this.props.fetchMethod,
       credentials: this.props.credentials,
       headers: this.getHeaders()
+    })
+    .then(response => {
+      return response.json();
     });
   }
 
@@ -56,9 +58,6 @@ class TwitterLogin extends Component {
     var popup = this.openPopup();
 
     return this.fetchRequestTokenLocal()
-      .then(response => {
-        return response.json();
-      })
       .then(data => {
         let authenticationUrl = `https://api.twitter.com/oauth/authenticate?oauth_token=${
           data.oauth_token
