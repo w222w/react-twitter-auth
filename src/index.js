@@ -16,6 +16,36 @@ class TwitterLogin extends Component {
     return this.getRequestToken();
   }
 
+  fetchRequestTokenLocal(){
+    if(this.props.fetchRequestToken){
+      return this.props.fetchRequestToken()
+    }
+    return window
+    .fetch(this.props.requestTokenUrl, {
+      method: this.props.fetchMethod,
+      credentials: this.props.credentials,
+      headers: this.getHeaders()
+    });
+  }
+
+  fetchOauthTokenLocal({oAuthVerifier, oauthToken}){
+    if(this.props.fetchOauthToken){
+      return this.props.fetchOauthToken(oAuthVerifier, oauthToken);
+    }
+
+    return window.fetch(
+        `${
+          this.props.loginUrl
+        }?oauth_verifier=${oAuthVerifier}&oauth_token=${oauthToken}`,
+        {
+          method: this.props.fetchMethod,
+          credentials: this.props.credentials,
+          headers: this.getHeaders()
+        }
+      );
+
+  }
+
   getHeaders() {
     const headers = Object.assign({}, this.props.customHeaders);
     headers["Content-Type"] = "application/json";
@@ -25,12 +55,7 @@ class TwitterLogin extends Component {
   getRequestToken() {
     var popup = this.openPopup();
 
-    return window
-      .fetch(this.props.requestTokenUrl, {
-        method: this.props.fetchMethod,
-        credentials: this.props.credentials,
-        headers: this.getHeaders()
-      })
+    return this.fetchRequestTokenLocal()
       .then(response => {
         return response.json();
       })
@@ -118,17 +143,7 @@ class TwitterLogin extends Component {
   }
 
   getOauthToken(oAuthVerifier, oauthToken) {
-    return window
-      .fetch(
-        `${
-          this.props.loginUrl
-        }?oauth_verifier=${oAuthVerifier}&oauth_token=${oauthToken}`,
-        {
-          method: this.props.fetchMethod,
-          credentials: this.props.credentials,
-          headers: this.getHeaders()
-        }
-      )
+    return this.fetchOauthTokenLocal({oAuthVerifier, oauthToken})
       .then(response => {
         this.props.onSuccess(response);
       })
@@ -181,7 +196,10 @@ TwitterLogin.propTypes = {
   customHeaders: PropTypes.object,
   forceLogin: PropTypes.bool,
   screenName: PropTypes.string,
-  fetchMethod: PropTypes.string
+  fetchMethod: PropTypes.string,
+  fetchRequestToken: PropTypes.func,
+  fetchOauthToken: PropTypes.func,
+
 };
 
 TwitterLogin.defaultProps = {
