@@ -53,7 +53,7 @@ Custom content and handling by callbacks:
   const fetchTwitterOauthToken = (oauth_verifier, oauth_token) => {
     return new Promise((resolve) => {
       const twitter_data = {
-        ...twitterState,
+        ...twitterData,
         oauth_token,
         oauth_verifier
       };
