@@ -2,7 +2,6 @@ import React, { Component } from "react";
 import PropTypes from "prop-types";
 import "whatwg-fetch";
 import "url-search-params-polyfill";
-import TwitterIcon from "react-icons/lib/fa/twitter";
 
 class TwitterLogin extends Component {
   constructor(props) {
@@ -152,13 +151,9 @@ class TwitterLogin extends Component {
   }
 
   getDefaultButtonContent() {
-    const defaultIcon = this.props.showIcon ? (
-      <TwitterIcon color="#00aced" size={25} />
-    ) : null;
-
     return (
       <span>
-        {defaultIcon} {this.props.text}
+        {this.props.text}
       </span>
     );
   }
