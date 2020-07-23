@@ -1,87 +1,110 @@
-import React, { Component } from "react";
+import React from "react";
 import PropTypes from "prop-types";
 import "whatwg-fetch";
 import "url-search-params-polyfill";
 
-class TwitterLogin extends Component {
-  constructor(props) {
-    super(props);
-
-    this.onButtonClick = this.onButtonClick.bind(this);
-  }
-
-  onButtonClick(e) {
+const TwitterLoginLight = (props) => {
+  
+  const {
+    tag,
+    text,
+    style,
+    disabled,
+    className,
+    fetchRequestToken,
+    fetchMethod,
+    fetchOauthToken,
+    credentials,
+    customHeaders,
+    screenName,
+    onSuccess,
+    forceLogin,
+    onFailure,
+    loginUrl,
+    poolingTimeout,
+    requestTokenUrl,
+    twitterAuthUrl,
+    dialogWidth,
+    dialogHeight
+  } = props;
+  
+  const onButtonClick = (e) => {
     e.preventDefault();
-    return this.getRequestToken();
-  }
+    return getRequestToken();
+  };
 
-  fetchRequestTokenLocal(){
-    if(this.props.fetchRequestToken){
-      return this.props.fetchRequestToken()
+  const fetchRequestTokenLocal = () => {
+    if(fetchRequestToken){
+      return fetchRequestToken()
     }
-    return window.fetch(this.props.requestTokenUrl, {
-      method: this.props.fetchMethod,
-      credentials: this.props.credentials,
-      headers: this.getHeaders()
+    if(!requestTokenUrl){
+    
+    }
+    return window.fetch(requestTokenUrl, {
+      method: fetchMethod,
+      credentials: credentials,
+      headers: getHeaders()
     })
     .then(response => {
       return response.json();
     });
-  }
+  };
 
-  fetchOauthTokenLocal({oAuthVerifier, oauthToken}){
-    if(this.props.fetchOauthToken){
-      return this.props.fetchOauthToken(oAuthVerifier, oauthToken);
+  const fetchOauthTokenLocal = ({oAuthVerifier, oauthToken}) => {
+    if(fetchOauthToken){
+      return fetchOauthToken(oAuthVerifier, oauthToken);
     }
 
     return window.fetch(
         `${
-          this.props.loginUrl
+          loginUrl
         }?oauth_verifier=${oAuthVerifier}&oauth_token=${oauthToken}`,
         {
-          method: this.props.fetchMethod,
-          credentials: this.props.credentials,
-          headers: this.getHeaders()
+          method: fetchMethod,
+          credentials: credentials,
+          headers: getHeaders()
         }
       );
 
-  }
+  };
 
-  getHeaders() {
-    const headers = Object.assign({}, this.props.customHeaders);
+  const getHeaders = () => {
+    const headers = {
+      ...customHeaders
+    };
     headers["Content-Type"] = "application/json";
     return headers;
-  }
+  };
 
-  getRequestToken() {
-    var popup = this.openPopup();
+  const getRequestToken = () => {
+    var popup = openPopup();
 
-    return this.fetchRequestTokenLocal()
+    return fetchRequestTokenLocal()
       .then(data => {
-        let authenticationUrl = `https://api.twitter.com/oauth/authenticate?oauth_token=${
+        let authenticationUrl = `${twitterAuthUrl}?oauth_token=${
           data.oauth_token
-        }&force_login=${this.props.forceLogin}`;
+        }&force_login=${forceLogin}`;
 
-        if (this.props.screenName) {
+        if (screenName) {
           authenticationUrl = `${authenticationUrl}&screen_name=${
-            this.props.screenName
+            screenName
           }`;
         }
 
         popup.location = authenticationUrl;
-        this.polling(popup);
+        polling(popup);
       })
       .catch(error => {
         popup.close();
-        return this.props.onFailure(error);
+        return onFailure(error);
       });
-  }
+  };
 
-  openPopup() {
-    const w = this.props.dialogWidth;
-    const h = this.props.dialogHeight;
-    const left = screen.width / 2 - w / 2;
-    const top = screen.height / 2 - h / 2;
+  const openPopup = () => {
+    const w = dialogWidth;
+    const h = dialogHeight;
+    const left = window.screen.width / 2 - w / 2;
+    const top = window.screen.height / 2 - h / 2;
 
     return window.open(
       "",
@@ -95,13 +118,13 @@ class TwitterLogin extends Component {
         ", left=" +
         left
     );
-  }
+  };
 
-  polling(popup) {
+  const polling = (popup) => {
     const polling = setInterval(() => {
       if (!popup || popup.closed || popup.closed === undefined) {
         clearInterval(polling);
-        this.props.onFailure(new Error("Popup has been closed by user"));
+        onFailure(new Error("Popup has been closed by user"));
       }
 
       const closeDialog = () => {
@@ -112,7 +135,7 @@ class TwitterLogin extends Component {
       try {
         if (
           !popup.location.hostname.includes("api.twitter.com") &&
-          !popup.location.hostname == ""
+          !(popup.location.hostname === "")
         ) {
           if (popup.location.search) {
             const query = new URLSearchParams(popup.location.search);
@@ -121,10 +144,10 @@ class TwitterLogin extends Component {
             const oauthVerifier = query.get("oauth_verifier");
 
             closeDialog();
-            return this.getOauthToken(oauthVerifier, oauthToken);
+            return getOauthToken(oauthVerifier, oauthToken);
           } else {
             closeDialog();
-            return this.props.onFailure(
+            return onFailure(
               new Error(
                 "OAuth redirect has occurred but no query or hash parameters were found. " +
                   "They were either not set during the redirect, or were removed—typically by a " +
@@ -137,43 +160,41 @@ class TwitterLogin extends Component {
         // Ignore DOMException: Blocked a frame with origin from accessing a cross-origin frame.
         // A hack to get around same-origin security policy errors in IE.
       }
-    }, 500);
-  }
+    }, poolingTimeout);
+  };
 
-  getOauthToken(oAuthVerifier, oauthToken) {
-    return this.fetchOauthTokenLocal({oAuthVerifier, oauthToken})
+  const getOauthToken = (oAuthVerifier, oauthToken) => {
+    return fetchOauthTokenLocal({oAuthVerifier, oauthToken})
       .then(response => {
-        this.props.onSuccess(response);
+        onSuccess(response);
       })
       .catch(error => {
-        return this.props.onFailure(error);
+        return onFailure(error);
       });
-  }
+  };
 
-  getDefaultButtonContent() {
+  const getDefaultButtonContent = () => {
     return (
       <span>
-        {this.props.text}
+        {text}
       </span>
     );
   }
 
-  render() {
-    const twitterButton = React.createElement(
-      this.props.tag,
-      {
-        onClick: this.onButtonClick,
-        style: this.props.style,
-        disabled: this.props.disabled,
-        className: this.props.className
-      },
-      this.props.children ? this.props.children : this.getDefaultButtonContent()
-    );
-    return twitterButton;
-  }
-}
 
-TwitterLogin.propTypes = {
+    return React.createElement(
+      tag,
+      {
+        onClick: onButtonClick,
+        style,
+        disabled,
+        className
+      },
+      props.children ? props.children : getDefaultButtonContent()
+    );
+};
+
+TwitterLoginLight.propTypes = {
   tag: PropTypes.string,
   text: PropTypes.string,
   loginUrl: PropTypes.string,
@@ -185,29 +206,31 @@ TwitterLogin.propTypes = {
   className: PropTypes.string,
   dialogWidth: PropTypes.number,
   dialogHeight: PropTypes.number,
-  showIcon: PropTypes.bool,
   credentials: PropTypes.oneOf(["omit", "same-origin", "include"]),
   customHeaders: PropTypes.object,
   forceLogin: PropTypes.bool,
   screenName: PropTypes.string,
   fetchMethod: PropTypes.string,
+  twitterAuthUrl: PropTypes.string,
   fetchRequestToken: PropTypes.func,
   fetchOauthToken: PropTypes.func,
+  poolingTimeout: PropTypes.number,
 
 };
 
-TwitterLogin.defaultProps = {
+TwitterLoginLight.defaultProps = {
   tag: "button",
   text: "Sign in with Twitter",
   disabled: false,
   dialogWidth: 600,
   dialogHeight: 400,
-  showIcon: true,
   credentials: "same-origin",
   customHeaders: {},
   forceLogin: false,
+  poolingTimeout: 500,
   screenName: "",
-  fetchMethod: 'POST'
+  fetchMethod: 'POST',
+  twitterAuthUrl: 'https://api.twitter.com/oauth/authenticate'
 };
 
-export default TwitterLogin;
+export default TwitterLoginLight;

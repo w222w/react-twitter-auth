@@ -1,7 +1,11 @@
 import React from 'react';
-import TwitterLogin from 'TwitterLogin';
+import TwitterLogin from '../src';
 import { expect } from 'chai';
 import { mount } from 'enzyme';
+import Enzyme from 'enzyme';
+import Adapter from 'enzyme-adapter-react-16';
+
+Enzyme.configure({ adapter: new Adapter() });
 
 describe('Twitter Login Component', () => {
 
